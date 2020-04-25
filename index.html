@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Hello World</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <h1>Daftar Berita Ragnarok Frontier</h1>
+    <h3>By: Demigod Developer</h3>
+    <h6>BETA VERSION</h6>
+
+    <div class="row" id="demigod-content">
+      <div class="col-md-4 mt-3">
+        <h3>Searching...</h3>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  const contents = []
+
+  const contentTemplate = (content) => `
+    <div class="col-md-4 mt-3">
+      <div class="card">
+        <div class="card-body">
+          <img src="${content.image}"/>
+          <h4>${content.title}</h3>
+          <h6>Date: ${content.date.getFullYear()}-${content.date.getMonth() + 1}-${content.date.getDate()}</h6>
+          <a href="${content.link}" class="btn btn-block btn-primary">Go To Link</a>
+        </div>
+      </div>
+    </div>
+  `
+
+  const generateContent = () => {
+    $('#demigod-content').empty()
+    for (let content of contents)
+      $('#demigod-content').append(contentTemplate(content))
+  }
+
+  const isNewContent = (date) => {
+    const current = new Date()
+    const diffTime = Math.abs(current - date)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays <= 15
+  }
+
+  const newContent = (content) => {
+    if (isNewContent(content.date)) {
+      contents.push(content)
+      contents.sort((a, b) => b.date - a.date);
+      generateContent()
+    }
+  }
+
+  const getNews = (type) => {
+    fetch('https://cors-anywhere.herokuapp.com/https://rofrontier.gnjoy.id/news?type=' + type)
+      .then(response => response.text())
+      .then(text => {
+        let html = $.parseHTML(text)
+        let content = $('.row.rof-news-desc', html)
+        $.each(content, eachContext)
+      })
+    const eachContext = (k, v) => {
+      let image = $('.col-md-4 img', v).attr('src')
+      let title = $('.col-md-8 .rof-news-title', v)[0].innerText
+      let date = $('.col-md-8 .rof-news-top-content label', v)[0].innerText
+      let link = $('.col-md-8 .rof-news-bottom-content a', v).attr('href')
+      newContent({
+        image: image,
+        title: title,
+        link: link,
+        date: new Date(date)
+      })
+    }
+  }
+
+  getNews(1);  // News
+  getNews(2);  // Event
+  getNews(3);  // Update
+  getNews(4);  // Notice
+  getNews(6);  // Patch Note
+</script>
+
+</html>
